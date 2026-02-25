@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>爆速ライフログ 🌿</title>
+    <style>
+        /* ログイン画面のスタイルをすべて削除しました */
+        :root { --primary: #6c5ce7; --bg: #f8f9fa; --card: #ffffff; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .app { width: 100%; max-width: 450px; }
+        .card { background: var(--card); border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1 { font-size: 1.4rem; color: var(--primary); text-align: center; margin-bottom: 20px; }
+        h2 { font-size: 1rem; margin-bottom: 12px; color: #444; border-left: 4px solid var(--primary); padding-left: 8px; }
+
+        /* スタンプボタン */
+        .grid { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 15px; }
+        .btn-check { flex: 1; border: 2px solid #eee; background: white; border-radius: 10px; padding: 10px 5px; cursor: pointer; font-size: 1.2rem; transition: 0.2s; outline: none; }
+        .btn-check.active { border-color: var(--primary); background: #f3f0ff; transform: scale(0.95); }
+        .label { font-size: 0.7rem; color: #888; display: block; margin-bottom: 4px; text-align: center; }
+
+        /* 入力欄 */
+        .row { display: flex; gap: 10px; margin-bottom: 15px; }
+        input[type="time"], textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+        textarea { height: 80px; resize: none; }
+        
+        /* 保存ボタン */
+        .save-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 30px; font-weight: bold; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); margin-top: 10px; }
+        
+        /* 履歴 */
+        .history-item { border-bottom: 1px solid #eee; padding: 12px 0; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="app">
+    <h1>🌿 My Daily Log</h1>
+
+    <div class="card">
+        <h2>今日の気分</h2>
+        <div class="grid" id="mood-group">
+            <button class="btn-check" onclick="selectMood(this)">😊</button>
+            <button class="btn-check" onclick="selectMood(this)">😐</button>
+            <button class="btn-check" onclick="selectMood(this)">😴</button>
+            <button class="btn-check" onclick="selectMood(this)">🥺</button>
+        </div>
+
+        <h2>ごはん記録</h2>
+        <div class="grid">
+            <div style="flex:1;"><span class="label">朝</span><button class="btn-check" onclick="this.classList.toggle('active')">🍞</button></div>
+            <div style="flex:1;"><span class="label">昼</span><button class="btn-check" onclick="this.classList.toggle('active')">🍱</button></div>
+            <div style="flex:1;"><span class="label">夜</span><button class="btn-check" onclick="this.classList.toggle('active')">🍛</button></div>
+        </div>
+
+        <h2>睡眠</h2>
+        <div class="row">
+            <div style="flex:1"><span class="label">寝た時間</span><input type="time" id="sleepT"></div>
+            <div style="flex:1"><span class="label">起きた時間</span><input type="time" id="wakeT"></div>
+        </div>
+
+        <h2>メモ</h2>
+        <textarea id="memo" placeholder="今日の一言..."></textarea>
+        
+        <button class="save-btn" onclick="saveData()">記録を保存する</button>
+    </div>
+
+    <div class="card">
+        <h2>これまでの記録</h2>
+        <div id="history-list"></div>
+    </div>
+</div>
+
+<script>
+    // 気分選択
+    function selectMood(btn) {
+        document.querySelectorAll('#mood-group .btn-check').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    // 保存
+    function saveData() {
+        const mood = document.querySelector('#mood-group .active')?.innerText || "？";
+        const meals = Array.from(document.querySelectorAll('.grid .active')).map(b => b.innerText).join(' ');
+        const sleep = document.getElementById('sleepT').value || "--:--";
+        const wake = document.getElementById('wakeT').value || "--:--";
+        const memo = document.getElementById('memo').value;
+        const date = new Date().toLocaleDateString();
+
+        const newEntry = { date, mood, meals, sleep, wake, memo };
+        let history = JSON.parse(localStorage.getItem('myDailyLogsV2') || "[]");
+        history.unshift(newEntry);
+        localStorage.setItem('myDailyLogsV2', JSON.stringify(history));
+
+        alert('保存完了！');
+        showHistory();
+    }
+
+    // 表示
+    function showHistory() {
+        const list = document.getElementById('history-list');
+        const history = JSON.parse(localStorage.getItem('myDailyLogsV2') || "[]");
+        list.innerHTML = history.map(item => `
+            <div class="history-item">
+                <strong>${item.date} ${item.mood}</strong><br>
+                🍴 ${item.meals} | 💤 ${item.sleep}~${item.wake}<br>
+                <span style="color:#666">${item.memo}</span>
+            </div>
+        `).join('');
+    }
+    showHistory();
+</script>
+
+</body>
+</html>
